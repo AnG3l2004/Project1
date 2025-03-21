@@ -1,28 +1,8 @@
-# XML Parser and Processor
+# Simple XML Parser
 
-A custom XML parser and processor implementation that supports basic XML operations and simplified XPath queries.
+A basic XML parser implementation in Java without using any XML libraries.
 
-## Features
-
-- XML file reading and parsing
-- Element identification and unique ID management
-- Basic XML operations (print, select, set, etc.)
-- Simple XPath 2.0 query support
-- Tree-based XML structure representation
-
-## Supported Operations
-
-1. `print` - Print formatted XML
-2. `select <id> <key>` - Get attribute value
-3. `set <id> <key> <value>` - Set attribute value
-4. `children <id>` - List child elements
-5. `child <id> <n>` - Access nth child
-6. `text <id>` - Get element text content
-7. `delete <id> <key>` - Delete attribute
-8. `newchild <id>` - Create new child element
-9. `xpath <id> <XPath>` - Execute XPath queries
-
-## Project Structure
+## Current Project Structure
 
 ```
 src/
@@ -56,4 +36,4 @@ tests/
 
 ## Development Status
 
-�� Under Development
+Under Development
