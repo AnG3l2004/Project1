@@ -1,39 +1,28 @@
-# Simple XML Parser
+# 🧩 Simple XML CLI Editor
 
-A basic XML parser implementation in Java without using any XML libraries.
+A lightweight and intuitive command-line XML editor written in Java.  
+This tool allows you to open, navigate, view, and manipulate XML files directly from the terminal using a set of simple and expressive commands.
 
-## Current Project Structure
+---
 
-```
-src/
-├── core/
-│   ├── xml_element.py       # Base XML element class
-│   ├── xml_attribute.py     # XML attribute handling
-│   └── xml_parser.py        # XML parsing logic
-├── operations/
-│   ├── basic_operations.py  # Basic XML operations
-│   └── xpath_processor.py   # XPath processing
-├── utils/
-│   ├── id_generator.py      # Unique ID generation
-│   └── xml_formatter.py     # XML formatting utilities
-└── main.py                  # src.Main program entry point
+## ✨ Features
 
-tests/
-├── test_data/              # XML test files
-└── unit_tests/            # Test cases
-```
+- 📂 **Open & Save XML Files**
+- 🏷️ **View and Edit Attributes**
+- 🌿 **Navigate Tree Structure**
+- 👨‍👩‍👧 **Work with Parents, Children, Ancestors, Descendants**
+- 🆕 **Create and Modify Elements**
+- 🎨 **Color-coded CLI for better readability**
+- ✅ **Auto-generated element IDs**
+- 📜 **Pretty print and list view of XML structure**
 
-## Getting Started
+---
 
-1. Clone the repository
-2. Run `python src/main.py`
-3. Use the available commands to interact with XML files
+## 🚀 Getting Started
 
-## Requirements
+### 🔧 Requirements
+- Java 8 or higher
 
-- Python 3.8+
-- No external XML libraries required
-
-## Development Status
-
-Under Development
+### 🏗️ Compile
+```bash
+javac Main.java XMLParser.java XMLElement.java
