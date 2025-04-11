@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookstore xmlns:bk="http://example.com/books" xmlns:au="http://example.com/authors">
+    <bk:book id="1">
+        <bk:title>Harry Potter</bk:title>
+        <au:author>J.K. Rowling</au:author>
+        <bk:year>1997</bk:year>
+        <bk:price currency="USD">29.99</bk:price>
+    </bk:book>
+    <bk:book id="2">
+        <bk:title>The Hobbit</bk:title>
+        <au:author>J.R.R. Tolkien</au:author>
+        <bk:year>1937</bk:year>
+        <bk:price currency="USD">24.99</bk:price>
+    </bk:book>
+</bookstore> 

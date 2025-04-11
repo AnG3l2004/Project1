@@ -4,6 +4,7 @@ import java.util.*;
 public class XMLParser {
     private XMLElement root;
     private String currentFile;
+    private Map<String, String> namespaceMap = new HashMap<>();
 
     public void open(String filename) throws IOException {
         currentFile = filename;
@@ -18,7 +19,6 @@ public class XMLParser {
     }
 
     private XMLElement parseXML(String xml) throws IOException {
-        // Skip XML declaration and comments
         int start = 0;
         while (start < xml.length()) {
             if (xml.startsWith("<?xml", start)) {
@@ -38,7 +38,6 @@ public class XMLParser {
             char c = xml.charAt(i);
 
             if (c == '<') {
-                // Save any accumulated text content
                 if (textContent.length() > 0 && !elementStack.isEmpty()) {
                     String text = decodeXMLEntities(textContent.toString().trim());
                     if (!text.isEmpty()) {
@@ -48,13 +47,11 @@ public class XMLParser {
                 }
 
                 if (xml.startsWith("<!--", i)) {
-                    // Skip comments
                     i = xml.indexOf("-->", i) + 3;
                     continue;
                 }
 
                 if (xml.startsWith("<![CDATA[", i)) {
-                    // Handle CDATA sections
                     int cdataEnd = xml.indexOf("]]>", i);
                     if (cdataEnd == -1) throw new IOException("Unclosed CDATA section");
                     if (!elementStack.isEmpty()) {
@@ -66,7 +63,6 @@ public class XMLParser {
                 }
 
                 if (xml.charAt(i + 1) == '/') {
-                    // Closing tag
                     int endTag = xml.indexOf('>', i);
                     if (endTag == -1) throw new IOException("Invalid XML: unclosed tag");
                     String tagName = xml.substring(i + 2, endTag).trim();
@@ -86,11 +82,9 @@ public class XMLParser {
                     
                     i = endTag + 1;
                 } else {
-                    // Opening tag
                     int endTag = xml.indexOf('>', i);
                     if (endTag == -1) throw new IOException("Invalid XML: unclosed tag");
                     
-                    // Handle self-closing tags
                     boolean selfClosing = xml.charAt(endTag - 1) == '/';
                     int tagEnd = selfClosing ? endTag - 1 : endTag;
                     
@@ -100,13 +94,13 @@ public class XMLParser {
                     
                     XMLElement element = new XMLElement(tagName);
                     
-                    // Parse attributes if present
                     if (parts.length > 1) {
                         parseAttributes(element, parts[1]);
                     }
                     
                     if (!elementStack.isEmpty()) {
                         elementStack.peek().addChild(element);
+                        element.setParent(elementStack.peek());
                     }
                     
                     if (!selfClosing) {
@@ -131,26 +125,22 @@ public class XMLParser {
     private void parseAttributes(XMLElement element, String attributeString) throws IOException {
         int i = 0;
         while (i < attributeString.length()) {
-            // Skip whitespace
             while (i < attributeString.length() && Character.isWhitespace(attributeString.charAt(i))) {
                 i++;
             }
             if (i >= attributeString.length()) break;
 
-            // Find attribute name
             int equals = attributeString.indexOf('=', i);
             if (equals == -1) break;
 
             String name = attributeString.substring(i, equals).trim();
             i = equals + 1;
 
-            // Skip whitespace after equals
             while (i < attributeString.length() && Character.isWhitespace(attributeString.charAt(i))) {
                 i++;
             }
             if (i >= attributeString.length()) break;
 
-            // Find attribute value
             char quote = attributeString.charAt(i);
             if (quote != '"' && quote != '\'') {
                 throw new IOException("Invalid XML: attribute value must be quoted");
@@ -163,7 +153,21 @@ public class XMLParser {
             }
 
             String value = decodeXMLEntities(attributeString.substring(i, closeQuote));
-            element.setAttribute(name, value);
+            if (name.startsWith("xmlns")) {
+                if (name.length() > 5 && name.charAt(5) == ':') {
+                    String prefix = name.substring(6);
+                    namespaceMap.put(prefix, value);
+                    if (element.getPrefix() == null) {
+                        element.setPrefix(prefix);
+                        element.setNamespaceURI(value);
+                    }
+                } else {
+                    namespaceMap.put("", value);
+                    element.setNamespaceURI(value);
+                }
+            } else {
+                element.setAttribute(name, value);
+            }
             i = closeQuote + 1;
         }
     }
@@ -188,13 +192,10 @@ public class XMLParser {
     }
 
     private void writeElement(PrintWriter writer, XMLElement element, int indent) {
-        // Write indentation
         writeIndent(writer, indent);
         
-        // Write opening tag
         writer.print("<" + element.getTag());
         
-        // Write attributes
         for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
             writer.print(" " + attr.getKey() + "=\"" + encodeXMLEntities(attr.getValue()) + "\"");
         }

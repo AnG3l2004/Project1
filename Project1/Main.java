@@ -130,6 +130,77 @@ public class Main {
                     }
                     break;
 
+                case "list":
+                    if (parser.getRoot() != null) {
+                        System.out.println("XML Structure:");
+                        listElements(parser.getRoot(), "");
+                    } else {
+                        System.out.println("No file is currently open");
+                    }
+                    break;
+
+                case "child":
+                    if (parts.length != 3) {
+                        System.out.println("Usage: child <id> <tag>");
+                        return;
+                    }
+                    element = parser.getRoot().findById(parts[1]);
+                    if (element != null) {
+                        List<XMLElement> children = element.getChildrenByTag(parts[2]);
+                        for (XMLElement child : children) {
+                            System.out.println("Child: " + child.getTag() + " [ID: " + child.getId() + "]");
+                        }
+                    } else {
+                        System.out.println("Element not found with id: " + parts[1]);
+                    }
+                    break;
+
+                case "parent":
+                    if (parts.length != 2) {
+                        System.out.println("Usage: parent <id>");
+                        return;
+                    }
+                    element = parser.getRoot().findById(parts[1]);
+                    if (element != null && element.getParent() != null) {
+                        XMLElement parent = element.getParent();
+                        System.out.println("Parent: " + parent.getTag() + " [ID: " + parent.getId() + "]");
+                    } else {
+                        System.out.println("Parent not found or element is root");
+                    }
+                    break;
+
+                case "descendant":
+                    if (parts.length != 3) {
+                        System.out.println("Usage: descendant <id> <tag>");
+                        return;
+                    }
+                    element = parser.getRoot().findById(parts[1]);
+                    if (element != null) {
+                        List<XMLElement> descendants = element.getDescendantsByTag(parts[2]);
+                        for (XMLElement desc : descendants) {
+                            System.out.println("Descendant: " + desc.getTag() + " [ID: " + desc.getId() + "]");
+                        }
+                    } else {
+                        System.out.println("Element not found with id: " + parts[1]);
+                    }
+                    break;
+
+                case "ancestor":
+                    if (parts.length != 2) {
+                        System.out.println("Usage: ancestor <id>");
+                        return;
+                    }
+                    element = parser.getRoot().findById(parts[1]);
+                    if (element != null) {
+                        List<XMLElement> ancestors = element.getAncestors();
+                        for (XMLElement anc : ancestors) {
+                            System.out.println("Ancestor: " + anc.getTag() + " [ID: " + anc.getId() + "]");
+                        }
+                    } else {
+                        System.out.println("Element not found with id: " + parts[1]);
+                    }
+                    break;
+
                 default:
                     System.out.println("Unknown command. Type 'help' for commands.");
             }
@@ -158,24 +229,31 @@ public class Main {
         System.out.println("  children <id>               - List child elements");
         System.out.println("  newchild <id>               - Add new child element");
         
+        System.out.println(ANSI_GREEN + "\nXPath Axes:" + ANSI_RESET);
+        System.out.println("  child <id> <tag>            - List children with tag");
+        System.out.println("  parent <id>                 - Show parent element");
+        System.out.println("  descendant <id> <tag>       - List descendants with tag");
+        System.out.println("  ancestor <id>               - List ancestor elements");
+        
         System.out.println(ANSI_YELLOW + "\nExample Usage:" + ANSI_RESET);
         System.out.println("  1. " + ANSI_CYAN + "open test.xml" + ANSI_RESET + "          - Open a file");
         System.out.println("  2. " + ANSI_CYAN + "list" + ANSI_RESET + "                   - View structure");
         System.out.println("  3. " + ANSI_CYAN + "select auto_1 name" + ANSI_RESET + "     - Get attribute");
         System.out.println("  4. " + ANSI_CYAN + "set auto_1 color blue" + ANSI_RESET + "  - Set attribute");
+        System.out.println("  5. " + ANSI_CYAN + "child auto_1 book" + ANSI_RESET + "      - List child elements");
+        System.out.println("  6. " + ANSI_CYAN + "parent auto_2" + ANSI_RESET + "          - Show parent element");
+        System.out.println("  7. " + ANSI_CYAN + "descendant auto_1 title" + ANSI_RESET + " - List descendants");
+        System.out.println("  8. " + ANSI_CYAN + "ancestor auto_3" + ANSI_RESET + "        - List ancestors");
         
         System.out.println(ANSI_YELLOW + "\nTip:" + ANSI_RESET + " Use 'list' command to see all available IDs and attributes");
     }
 
     private static void printElement(XMLElement element, int indent) {
-        // Print indentation
         String indentStr = "    ".repeat(indent);
         
-        // Print tag with ID in color
         System.out.print(indentStr + ANSI_GREEN + "<" + element.getTag() + ANSI_RESET);
         System.out.print(ANSI_BLUE + " [ID: " + element.getId() + "]" + ANSI_RESET);
         
-        // Print attributes in a different color
         for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
             System.out.print(" " + ANSI_YELLOW + attr.getKey() + ANSI_RESET + "=\"" + 
                             ANSI_CYAN + attr.getValue() + ANSI_RESET + "\"");
@@ -205,13 +283,12 @@ public class Main {
     }
 
     private static void listElements(XMLElement element, String prefix) {
-        // Element name and ID
-        System.out.println(prefix + ANSI_GREEN + "└─ " + element.getTag() + ANSI_RESET + 
+        String qualifiedName = (element.getPrefix() != null ? element.getPrefix() + ":" : "") + element.getTag();
+        System.out.println(prefix + ANSI_GREEN + "└─ " + qualifiedName + ANSI_RESET + 
                           ANSI_BLUE + " [ID: " + element.getId() + "]" + ANSI_RESET);
         
         String childPrefix = prefix + "   ";
         
-        // Attributes
         if (!element.getAttributes().isEmpty()) {
             System.out.println(childPrefix + ANSI_YELLOW + "Attributes:" + ANSI_RESET);
             for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
@@ -220,13 +297,11 @@ public class Main {
             }
         }
         
-        // Text content
         if (element.getTextContent() != null) {
             System.out.println(childPrefix + ANSI_YELLOW + "Text:" + ANSI_RESET + " \"" + 
                              element.getTextContent() + "\"");
         }
         
-        // Children
         List<XMLElement> children = element.getChildren();
         if (!children.isEmpty()) {
             System.out.println(childPrefix + ANSI_YELLOW + "Children:" + ANSI_RESET);
