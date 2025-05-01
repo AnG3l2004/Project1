@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bookstore>
+    <book id="1">
+        <title>Harry Potter</title>
+        <author>J.K. Rowling</author>
+        <price>29.99</price>
+    </book>
+    <book id="1">  <!-- Duplicate ID -->
+        <title>The Hobbit</title>
+        <author>J.R.R. Tolkien</author>
+        <price>24.99</price>
+    </book>
+    <book>  <!-- No ID -->
+        <title>1984</title>
+        <author>George Orwell</author>
+        <price>19.99</price>
+    </book>
+    <magazine id="mag1">
+        <title>Science Today</title>
+    </magazine>
+    <magazine id="mag1">  <!-- Duplicate ID -->
+        <title>Nature</title>
+    </magazine>
+</bookstore>
