@@ -1,7 +1,34 @@
 import java.io.*;
 import java.util.*;
-
+/**
+ * Парсер за XML документи, който преобразува XML текст в дървовидна структура от обекти XMLElement.
+ * Този парсер поддържа:
+ * - Основно парсване на XML структура
+ * - Обработка на XML декларации
+ * - Извличане на атрибути
+ * - Парсване на вложени елементи
+ * - Извличане на текстово съдържание
+ *
+ * Пример за използване:
+ * <pre>
+ * XMLParser parser = new XMLParser();
+ * XMLElement root = parser.parseXML("example.xml");
+ * </pre>
+ */
 public class XMLParser {
+    /**
+     * Парсира XML файл и връща кореновия елемент от полученото дърво.
+     *
+     * @param filename път до XML файла за парсване
+     * @return кореновият XMLElement от парсираното XML дърво
+     * @throws IOException ако файлът не може да бъде прочетен или съдържа невалиден XML
+     *
+     * Пример:
+     * <pre>
+     * XMLElement root = parser.parseXML("data.xml");
+     * // root вече съдържа цялата XML структура
+     * </pre>
+     */
     public XMLElement parseXML(String filename) throws IOException {
         StringBuilder content = new StringBuilder();
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
@@ -19,7 +46,18 @@ public class XMLParser {
 
         return parseElement(xml);
     }
-
+    /**
+     * Парсира един XML елемент и неговите дъщерни елементи от подаден низ.
+     *
+     * @param xml низът, съдържащ XML за парсване
+     * @return парсираният XMLElement
+     * @throws IOException ако XML-ът е некоректен
+     *
+     * Пример:
+     * <pre>
+     * XMLElement element = parser.parseElement("&lt;person name=\"John\"&gt;John Doe&lt;/person&gt;");
+     * </pre>
+     */
     private XMLElement parseElement(String xml) throws IOException {
         int startTag = xml.indexOf('<') + 1;
         int endTag = xml.indexOf('>');
@@ -76,7 +114,19 @@ public class XMLParser {
 
         return element;
     }
-
+    /**
+     * Намира крайното място на дъщерен елемент в XML низ.
+     * Този метод правилно обработва вложени елементи.
+     *
+     * @param xml низът с дъщерен XML елемент
+     * @return позицията, където дъщерният елемент завършва, или -1 ако не е намерен
+     *
+     * Пример:
+     * <pre>
+     * int end = findChildEnd("&lt;child&gt;content&lt;/child&gt;");
+     * // end ще бъде позицията след затварящия таг
+     * </pre>
+     */
     private int findChildEnd(String xml) {
         int tagEnd = xml.indexOf('>');
         if (tagEnd == -1) return -1;

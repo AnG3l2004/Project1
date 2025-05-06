@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.io.IOException;
 
 public class Main {
     private static XMLCommandHandler handler = new XMLCommandHandler();
@@ -85,6 +86,17 @@ public class Main {
                         }
                         handler.query(tokens[1]);
                         break;
+                    case "save":
+                        if (tokens.length != 2) {
+                            System.out.println("Usage: save <filename>");
+                            break;
+                        }
+                        try {
+                            handler.save(tokens[1]);
+                        } catch (IOException e) {
+                            System.out.println("Error saving file: " + e.getMessage());
+                        }
+                        break;
                     case "help":
                         printHelp();
                         break;
@@ -110,6 +122,7 @@ public class Main {
         System.out.println("delete <id> <key>        - Delete attribute");
         System.out.println("newchild <id>            - Add new child element");
         System.out.println("query <expression>       - Query the XML structure");
+        System.out.println("save <filename>          - Save current XML structure to file");
         System.out.println("help                     - Show this help message");
         System.out.println("exit                     - Exit the program");
     }
