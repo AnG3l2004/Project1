@@ -25,6 +25,7 @@ import java.util.*;
 public class XMLCommandHandler {
     private XMLParser parser;
     private XMLElement currentRoot;
+    private String lastSavedFilename;
 
     /**
      * Създава нов XMLCommandHandler с подразбиращ се XMLParser.
@@ -46,6 +47,7 @@ public class XMLCommandHandler {
      */
     public void open(String filename) throws IOException {
         currentRoot = parser.parseXML(filename);
+        lastSavedFilename = filename;
         System.out.println("File opened successfully.");
     }
     /**
@@ -422,27 +424,34 @@ public class XMLCommandHandler {
     }
 
     /**
-     * Запазва текущата XML структура във файл.
-     * 
+     * Запазва текущата XML структура във файл (вътрешен метод).
+     *
      * @param filename пътят до файла, в който да се запази XML структурата
      * @throws IOException ако файлът не може да бъде записан
-     * 
-     * Пример:
-     * <pre>
-     * handler.save("output.xml");
-     * </pre>
      */
-    public void save(String filename) throws IOException {
+    private void saveToFile(String filename) throws IOException {
         if (currentRoot == null) {
             System.out.println("Няма отворен файл за запазване.");
             return;
         }
-
         try (FileWriter writer = new FileWriter(filename)) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             saveElement(writer, currentRoot, 0);
             System.out.println("Файлът е запазен успешно.");
         }
+    }
+
+    public void save() throws IOException {
+        if (lastSavedFilename == null) {
+            System.out.println("No previous filename. Use saveas <filename>.");
+            return;
+        }
+        saveToFile(lastSavedFilename);
+    }
+
+    public void saveAs(String filename) throws IOException {
+        saveToFile(filename);
+        lastSavedFilename = filename;
     }
 
     /**

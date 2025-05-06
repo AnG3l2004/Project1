@@ -87,12 +87,23 @@ public class Main {
                         handler.query(tokens[1]);
                         break;
                     case "save":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: save <filename>");
+                        if (tokens.length != 1) {
+                            System.out.println("Usage: save");
                             break;
                         }
                         try {
-                            handler.save(tokens[1]);
+                            handler.save();
+                        } catch (IOException e) {
+                            System.out.println("Error saving file: " + e.getMessage());
+                        }
+                        break;
+                    case "saveas":
+                        if (tokens.length != 2) {
+                            System.out.println("Usage: saveas <filename>");
+                            break;
+                        }
+                        try {
+                            handler.saveAs(tokens[1]);
                         } catch (IOException e) {
                             System.out.println("Error saving file: " + e.getMessage());
                         }
@@ -122,7 +133,8 @@ public class Main {
         System.out.println("delete <id> <key>        - Delete attribute");
         System.out.println("newchild <id>            - Add new child element");
         System.out.println("query <expression>       - Query the XML structure");
-        System.out.println("save <filename>          - Save current XML structure to file");
+        System.out.println("save                    - Save current XML structure to last used file");
+        System.out.println("saveas <filename>        - Save current XML structure to a new file");
         System.out.println("help                     - Show this help message");
         System.out.println("exit                     - Exit the program");
     }
