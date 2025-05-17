@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bookstore id="auto_1">
   <book null="20" id="1" auto_6="30">
-    <title id="auto_3">Harry Potter</title>
+    <title price="40" id="auto_3">Harry Potter</title>
     <author id="auto_4">J.K. Rowling</author>
     <price id="auto_5">29.99</price>
   </book>

@@ -1,5 +1,22 @@
 import java.util.Scanner;
 import java.io.IOException;
+import commands.XMLCommand;
+import commands.XMLCommandHandler;
+import commands.OpenCommand;
+import commands.PrintCommand;
+import commands.SelectCommand;
+import commands.SetCommand;
+import commands.ChildrenCommand;
+import commands.ChildCommand;
+import commands.TextCommand;
+import commands.DeleteCommand;
+import commands.NewChildCommand;
+import commands.QueryCommand;
+import commands.SaveCommand;
+import commands.SaveAsCommand;
+import commands.CommandType;
+import java.util.EnumMap;
+import java.util.Map;
 
 public class Main {
     private static XMLCommandHandler handler = new XMLCommandHandler();
@@ -7,6 +24,25 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("XML Parser Interactive Console. Type 'help' for commands. Type 'exit' to quit.");
+
+        Map<CommandType, XMLCommand> commandMap = new EnumMap<>(CommandType.class);
+        commandMap.put(CommandType.OPEN, new OpenCommand(handler, null));
+        commandMap.put(CommandType.PRINT, new PrintCommand(handler));
+        commandMap.put(CommandType.SELECT, new SelectCommand(handler, null, null));
+        commandMap.put(CommandType.SET, new SetCommand(handler, null, null, null));
+        commandMap.put(CommandType.CHILDREN, new ChildrenCommand(handler, null));
+        commandMap.put(CommandType.CHILD, new ChildCommand(handler, null, 0));
+        commandMap.put(CommandType.TEXT, new TextCommand(handler, null));
+        commandMap.put(CommandType.DELETE, new DeleteCommand(handler, null, null));
+        commandMap.put(CommandType.NEWCHILD, new NewChildCommand(handler, null));
+        commandMap.put(CommandType.QUERY, new QueryCommand(handler, null));
+        commandMap.put(CommandType.SAVE, new SaveCommand(handler));
+        commandMap.put(CommandType.SAVEAS, new SaveAsCommand(handler, null));
+
+        runConsole(scanner, commandMap);
+    }
+
+    private static void runConsole(Scanner scanner, Map<CommandType, XMLCommand> commandMap) {
         while (true) {
             System.out.print("> ");
             String line = scanner.nextLine().trim();
@@ -16,106 +52,22 @@ public class Main {
             }
             if (line.isEmpty()) continue;
             String[] tokens = line.split("\\s+");
-            String command = tokens[0].toLowerCase();
+            String commandStr = tokens[0].toLowerCase();
+            if (commandStr.equals("help")) {
+                printHelp();
+                continue;
+            }
             try {
-                switch (command) {
-                    case "open":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: open <filename>");
-                            break;
-                        }
-                        handler.open(tokens[1]);
-                        handler.print();
-                        break;
-                    case "print":
-                        handler.print();
-                        break;
-                    case "select":
-                        if (tokens.length != 3) {
-                            System.out.println("Usage: select <id> <key>");
-                            break;
-                        }
-                        handler.select(tokens[1], tokens[2]);
-                        break;
-                    case "set":
-                        if (tokens.length != 4) {
-                            System.out.println("Usage: set <id> <key> <value>");
-                            break;
-                        }
-                        handler.set(tokens[1], tokens[2], tokens[3]);
-                        break;
-                    case "children":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: children <id>");
-                            break;
-                        }
-                        handler.children(tokens[1]);
-                        break;
-                    case "child":
-                        if (tokens.length != 3) {
-                            System.out.println("Usage: child <id> <n>");
-                            break;
-                        }
-                        handler.child(tokens[1], Integer.parseInt(tokens[2]));
-                        break;
-                    case "text":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: text <id>");
-                            break;
-                        }
-                        handler.text(tokens[1]);
-                        break;
-                    case "delete":
-                        if (tokens.length != 3) {
-                            System.out.println("Usage: delete <id> <key>");
-                            break;
-                        }
-                        handler.delete(tokens[1], tokens[2]);
-                        break;
-                    case "newchild":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: newchild <id>");
-                            break;
-                        }
-                        handler.newchild(tokens[1]);
-                        break;
-                    case "query":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: query <expression>");
-                            break;
-                        }
-                        handler.query(tokens[1]);
-                        break;
-                    case "save":
-                        if (tokens.length != 1) {
-                            System.out.println("Usage: save");
-                            break;
-                        }
-                        try {
-                            handler.save();
-                        } catch (IOException e) {
-                            System.out.println("Error saving file: " + e.getMessage());
-                        }
-                        break;
-                    case "saveas":
-                        if (tokens.length != 2) {
-                            System.out.println("Usage: saveas <filename>");
-                            break;
-                        }
-                        try {
-                            handler.saveAs(tokens[1]);
-                        } catch (IOException e) {
-                            System.out.println("Error saving file: " + e.getMessage());
-                        }
-                        break;
-                    case "help":
-                        printHelp();
-                        break;
-                    default:
-                        System.out.println("Unknown command. Type 'help' for available commands.");
+                CommandType commandType = CommandType.fromString(commandStr);
+                if (commandType == null) {
+                    System.out.println("Unknown command. Type 'help' for available commands.");
+                    continue;
                 }
+                XMLCommand cmd = commandMap.get(commandType);
+                cmd.setParameters(tokens);
+                cmd.execute();
             } catch (Exception e) {
-                System.out.println("Error: " + e.getMessage());
+                System.out.println("Invalid usage. Type 'help' for available commands.");
             }
         }
         scanner.close();
