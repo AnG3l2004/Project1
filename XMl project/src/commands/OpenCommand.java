@@ -2,7 +2,7 @@ package commands;
 
 import java.io.IOException;
 
-public class OpenCommand implements XMLCommand {
+public class OpenCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String filename;
 
@@ -28,5 +28,10 @@ public class OpenCommand implements XMLCommand {
     public void execute() throws IOException {
         handler.open(filename);
         handler.print();
+    }
+    
+    @Override
+    public String getHelp() {
+        return "open <filename>          - Open and display an XML file";
     }
 } 

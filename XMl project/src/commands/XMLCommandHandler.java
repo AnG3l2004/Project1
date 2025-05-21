@@ -101,14 +101,16 @@ public class XMLCommandHandler {
     }
     /**
      * Задава стойност на атрибут за даден елемент.
+     * Поддържа стойности на атрибути, които съдържат интервали.
      *
      * @param id ID на елемента, който ще бъде модифициран
-     * @param key ключът на атрибута
-     * @param value новата стойност на атрибута
+     * @param key ключът на атрибута или 'text' за текстово съдържание
+     * @param value новата стойност на атрибута (може да съдържа интервали)
      *
      * Пример:
      * <pre>
-     * handler.set("element1", "name", "Jane");
+     * handler.set("element1", "name", "Jane Doe");  // Sets name attribute to "Jane Doe"
+     * handler.set("element1", "text", "This is multiword content");  // Sets text content
      * </pre>
      */
     public void set(String id, String key, String value) {
@@ -117,30 +119,59 @@ public class XMLCommandHandler {
             System.out.println("Element with id '" + id + "' not found.");
             return;
         }
+        
         if (key.equals("id")) {
             System.out.println("Cannot modify 'id' attribute.");
             return;
         }
+        
         if (key.equals("text")) {
             element.setTextContent(value);
             System.out.println("Text content set successfully.");
             return;
         }
+        
+        if (key.startsWith("*")) {
+            String tagName = key.substring(1); // Remove the *
+            
+            boolean childUpdated = false;
+            for (XMLElement child : element.getChildren()) {
+                if (child.getTag().equals(tagName)) {
+                    child.setTextContent(value);
+                    System.out.println("Updated existing child element <" + tagName + "> with new text content.");
+                    childUpdated = true;
+                    break;
+                }
+            }
+            
+            if (!childUpdated) {
+                XMLElement newChild = new XMLElement(tagName);
+                newChild.setTextContent(value);
+                newChild.setParent(element);
+                element.addChild(newChild);
+                System.out.println("Created new child element <" + tagName + "> with text content.");
+            }
+            return;
+        }
+        
+        boolean isChildElementTag = false;
+        for (XMLElement child : element.getChildren()) {
+            if (child.getTag().equals(key)) {
+                isChildElementTag = true;
+                child.setTextContent(value);
+                System.out.println("Child element's text content updated successfully.");
+                return;
+            }
+        }
+        
         element.setAttribute(key, value);
         System.out.println("Attribute set successfully.");
     }
     /**
-     * Извежда списък с всички дъщерни елементи на даден родителски елемент.
+     * Показва списък с всички дъщерни елементи на даден родителски елемент,
+     * с форматиране, което разграничава между елементите по подразбиране и специализираните тагове.
      *
      * @param id ID на родителския елемент
-     *
-     * Пример:
-     * <pre>
-     * handler.children("parent1");
-     * // Резултат:
-     * // child1 [id: auto_1] Атрибути: name="value"
-     * // child2 [id: auto_2] Атрибути: type="text"
-     * </pre>
      */
     public void children(String id) {
         XMLElement element = findElementById(currentRoot, id);
@@ -155,18 +186,52 @@ public class XMLCommandHandler {
             return;
         }
 
+        List<XMLElement> defaultChildren = new ArrayList<>();
+        List<XMLElement> specialTagChildren = new ArrayList<>();
+        
         for (XMLElement child : children) {
-            System.out.print(child.getTag() + " [id: " + child.getAttribute("id") + "]");
-            Map<String, String> attrs = child.getAttributes();
-            if (!attrs.isEmpty()) {
-                System.out.print(" Attributes: ");
-                for (Map.Entry<String, String> attr : attrs.entrySet()) {
-                    if (!attr.getKey().equals("id")) {
-                        System.out.print(attr.getKey() + "=\"" + attr.getValue() + "\" ");
+            if (child.getTag().equals("new_element")) {
+                defaultChildren.add(child);
+            } else {
+                specialTagChildren.add(child);
+            }
+        }
+
+        if (!defaultChildren.isEmpty()) {
+            System.out.println("Default children:");
+            for (XMLElement child : defaultChildren) {
+                System.out.print("  " + child.getTag() + " [id: " + child.getAttribute("id") + "]");
+                Map<String, String> attrs = child.getAttributes();
+                if (attrs.size() > 1) { // More than just the id attribute
+                    System.out.print(" Attributes: ");
+                    for (Map.Entry<String, String> attr : attrs.entrySet()) {
+                        if (!attr.getKey().equals("id")) {
+                            System.out.print(attr.getKey() + "=\"" + attr.getValue() + "\" ");
+                        }
                     }
                 }
+                System.out.println();
             }
-            System.out.println();
+        }
+        
+        if (!specialTagChildren.isEmpty()) {
+            if (!defaultChildren.isEmpty()) {
+                System.out.println();
+            }
+            System.out.println("Specialized tag children:");
+            for (XMLElement child : specialTagChildren) {
+                System.out.print("  <" + child.getTag() + "> [id: " + child.getAttribute("id") + "]");
+                Map<String, String> attrs = child.getAttributes();
+                if (attrs.size() > 1) {
+                    System.out.print(" Attributes: ");
+                    for (Map.Entry<String, String> attr : attrs.entrySet()) {
+                        if (!attr.getKey().equals("id")) {
+                            System.out.print(attr.getKey() + "=\"" + attr.getValue() + "\" ");
+                        }
+                    }
+                }
+                System.out.println();
+            }
         }
     }
     /**
@@ -224,16 +289,10 @@ public class XMLCommandHandler {
         System.out.println(text);
     }
     /**
-     * Изтрива атрибут от даден елемент.
-     * Забележка: Атрибутът 'id' не може да бъде изтрит.
-     *
-     * @param id ID на елемента
-     * @param key ключът на атрибута за изтриване
-     *
-     * Пример:
-     * <pre>
-     * handler.delete("element1", "name");
-     * </pre>
+     * Изтрива атрибут или дъщерен елемент от даден XML елемент.
+     * 
+     * @param id ID на елемента за модифициране
+     * @param key Име на атрибута или таг на дъщерния елемент за изтриване
      */
     public void delete(String id, String key) {
         XMLElement element = findElementById(currentRoot, id);
@@ -243,42 +302,66 @@ public class XMLCommandHandler {
         }
 
         if (key.equals("id")) {
-            System.out.println("Cannot delete 'id' attribute.");
+            System.out.println("Cannot delete 'id' attribute as it is required for element identification.");
             return;
         }
 
         if (key.equals("text")) {
-            if (element.getTextContent() != null && !element.getTextContent().isEmpty()) {
-                element.setTextContent("");
-                System.out.println("Text content deleted successfully.");
-            } else {
-                System.out.println("No text content to delete.");
-            }
+            deleteTextContent(element);
             return;
         }
 
-        // Try to delete attribute
+        if (deleteAttribute(element, key)) {
+            return;
+        }
+
+        deleteChildElements(element, key);
+    }
+
+    /**
+     * Изтрива текстовото съдържание на елемент.
+     */
+    private void deleteTextContent(XMLElement element) {
+        if (element.getTextContent() != null && !element.getTextContent().isEmpty()) {
+            element.setTextContent("");
+            System.out.println("Text content deleted successfully.");
+        } else {
+            System.out.println("No text content to delete.");
+        }
+    }
+
+    /**
+     * Опитва се да изтрие атрибут от елемент.
+     * @return true ако атрибутът е намерен и изтрит, false в противен случай
+     */
+    private boolean deleteAttribute(XMLElement element, String key) {
         if (element.getAttributes().containsKey(key)) {
             element.getAttributes().remove(key);
-            System.out.println("Attribute deleted successfully.");
-            return;
+            System.out.println("Attribute '" + key + "' deleted successfully.");
+            return true;
         }
+        return false;
+    }
 
-        // Try to delete child element(s) by tag
+    /**
+     * Опитва се да изтрие дъщерни елементи с посочения таг.
+     */
+    private void deleteChildElements(XMLElement element, String tag) {
         List<XMLElement> children = element.getChildren();
         boolean removed = false;
         Iterator<XMLElement> it = children.iterator();
         while (it.hasNext()) {
             XMLElement child = it.next();
-            if (child.getTag().equals(key)) {
+            if (child.getTag().equals(tag)) {
                 it.remove();
                 removed = true;
             }
         }
+        
         if (removed) {
-            System.out.println("Child element(s) with tag '" + key + "' deleted successfully.");
+            System.out.println("Child element(s) with tag '" + tag + "' deleted successfully.");
         } else {
-            System.out.println("Attribute or child element '" + key + "' not found.");
+            System.out.println("No attribute or child element with name '" + tag + "' found.");
         }
     }
     /**
@@ -286,23 +369,34 @@ public class XMLCommandHandler {
      * Новият елемент получава автоматично генерирано ID.
      *
      * @param id ID на родителския елемент
+     * @param tagName Optional tag name for the new element (defaults to "new_element" if null)
      *
      * Пример:
      * <pre>
-     * handler.newchild("parent1");
+     * handler.newchild("parent1", "new_child");
      * // Резултат: Добавено е ново дете с id: auto_3
      * </pre>
      */
-    public void newchild(String id) {
-        XMLElement element = findElementById(currentRoot, id);
-        if (element == null) {
+    public void newchild(String id, String tagName) {
+        XMLElement parent = findElementById(currentRoot, id);
+        if (parent == null) {
             System.out.println("Element with id '" + id + "' not found.");
             return;
         }
 
-        XMLElement newChild = new XMLElement("new_element");
-        element.addChild(newChild);
-        System.out.println("New child added with id: " + newChild.getAttribute("id"));
+        String newTag = (tagName != null && !tagName.isEmpty()) ? tagName : "new_element";
+        XMLElement newChild = new XMLElement(newTag);
+        
+        newChild.setParent(parent);
+        parent.addChild(newChild);
+        System.out.println("New child <" + newTag + "> added with id: " + newChild.getAttribute("id"));
+    }
+
+    /**
+     * Legacy version of newchild that doesn't specify tag name
+     */
+    public void newchild(String id) {
+        newchild(id, null);
     }
     /**
      * Изпълнява заявка в стил XPath върху XML структурата.
@@ -335,14 +429,39 @@ public class XMLCommandHandler {
         }
     }
 
+    private List<XMLElement> findElementsByTag(XMLElement root, String tag) {
+        List<XMLElement> result = new ArrayList<>();
+        if (root.getTag().equals(tag)) {
+            result.add(root);
+        }
+        for (XMLElement child : root.getChildren()) {
+            result.addAll(findElementsByTag(child, tag));
+        }
+        return result;
+    }
+
     private void handleAttributeQuery(String expression) {
         String[] parts = expression.split("\\(@");
         String tag = parts[0];
         String attr = parts[1].replace(")", "");
+        
         List<XMLElement> elements = findElementsByTag(currentRoot, tag);
+        if (elements.isEmpty()) {
+            System.out.println("No elements found with tag: " + tag);
+            return;
+        }
+        
+        boolean foundAny = false;
         for (XMLElement el : elements) {
             String val = el.getAttribute(attr);
-            if (val != null) System.out.println(val);
+            if (val != null) {
+                System.out.println(val);
+                foundAny = true;
+            }
+        }
+        
+        if (!foundAny) {
+            System.out.println("No attributes found with name: " + attr + " on elements with tag: " + tag);
         }
     }
 
@@ -353,24 +472,63 @@ public class XMLCommandHandler {
         String[] filterParts = insideParen.split("=");
         String filterKey = filterParts[0];
         String filterValue = filterParts[1].replaceAll("\"", "");
+        
         List<XMLElement> elements = findElementsByTag(currentRoot, beforeParen);
+        if (elements.isEmpty()) {
+            System.out.println("No elements found with tag: " + beforeParen);
+            return;
+        }
+        
         List<XMLElement> filtered = new ArrayList<>();
         for (XMLElement el : elements) {
-            if (filterValue.equals(el.getAttribute(filterKey)) || filterValue.equals(el.getTextContent())) {
+            String attrValue = el.getAttribute(filterKey);
+            if (filterValue.equals(attrValue)) {
+                filtered.add(el);
+                continue;
+            }
+            
+            for (XMLElement child : el.getChildren()) {
+                if (child.getTag().equals(filterKey) && 
+                    filterValue.equals(child.getTextContent())) {
+                    filtered.add(el);
+                    break;
+                }
+            }
+            
+            if (filterValue.equals(el.getTextContent())) {
                 filtered.add(el);
             }
         }
+        
+        if (filtered.isEmpty()) {
+            System.out.println("No matching elements found.");
+            return;
+        }
+        
         if (afterParen.startsWith("/")) afterParen = afterParen.substring(1);
         if (!afterParen.isEmpty()) {
+            boolean foundAny = false;
             for (XMLElement el : filtered) {
                 List<XMLElement> children = findElementsByTag(el, afterParen);
                 for (XMLElement child : children) {
-                    System.out.println(child.getTextContent());
+                    String text = child.getTextContent();
+                    if (text != null && !text.isEmpty()) {
+                        System.out.println(text);
+                        foundAny = true;
+                    }
                 }
+            }
+            if (!foundAny) {
+                System.out.println("No matching child elements found.");
             }
         } else {
             for (XMLElement el : filtered) {
-                System.out.println(el.getTextContent());
+                String text = el.getTextContent();
+                if (text != null && !text.isEmpty()) {
+                    System.out.println(text);
+                } else {
+                    System.out.println(el.getTag() + " (no text)");
+                }
             }
         }
     }
@@ -384,7 +542,6 @@ public class XMLCommandHandler {
             String tag = part;
             int idx = -1;
             if (part.contains("[")) {
-                tag = part.substring(0, part.indexOf('['));
                 String idxStr = part.substring(part.indexOf('[') + 1, part.indexOf(']'));
                 try {
                     idx = Integer.parseInt(idxStr);
@@ -394,7 +551,7 @@ public class XMLCommandHandler {
                 }
             }
             for (XMLElement el : current) {
-                List<XMLElement> children = el.getChildrenByTag(tag);
+                List<XMLElement> children = findElementsByTag(el, tag);
                 if (idx >= 0) {
                     if (idx < children.size()) {
                         next.add(children.get(idx));
@@ -416,7 +573,9 @@ public class XMLCommandHandler {
     }
 
     private XMLElement findElementById(XMLElement root, String id) {
-        if (root == null) return null;
+        if (root == null || id == null) {
+            return null;
+        }
 
         if (id.equals(root.getAttribute("id"))) {
             return root;
@@ -434,34 +593,21 @@ public class XMLCommandHandler {
 
     private void printElement(XMLElement element, int indent) {
         String indentation = "  ".repeat(indent);
-        System.out.print(indentation + "<" + element.getTag());
+        String tagName = element.getTag();
+        System.out.print(indentation + "<" + tagName);
 
         for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
             System.out.print(" " + attr.getKey() + "=\"" + attr.getValue() + "\"");
         }
-        System.out.print(">");
+        System.out.print(">\n");
 
-        if (element.getTextContent() != null) {
-            System.out.print(element.getTextContent());
-            System.out.println("</" + element.getTag() + ">");
-        } else {
-            System.out.println();
-            for (XMLElement child : element.getChildren()) {
-                printElement(child, indent + 1);
-            }
-            System.out.println(indentation + "</" + element.getTag() + ">");
+        if (element.getTextContent() != null && !element.getTextContent().isEmpty()) {
+            System.out.print(indentation + "  " + element.getTextContent() + "\n");
         }
-    }
-
-    private List<XMLElement> findElementsByTag(XMLElement root, String tag) {
-        List<XMLElement> result = new ArrayList<>();
-        if (tag.equals(root.getTag())) {
-            result.add(root);
+        for (XMLElement child : element.getChildren()) {
+            printElement(child, indent + 1);
         }
-        for (XMLElement child : root.getChildren()) {
-            result.addAll(findElementsByTag(child, tag));
-        }
-        return result;
+        System.out.println(indentation + "</" + tagName + ">");
     }
 
     /**
@@ -472,13 +618,13 @@ public class XMLCommandHandler {
      */
     private void saveToFile(String filename) throws IOException {
         if (currentRoot == null) {
-            System.out.println("Няма отворен файл за запазване.");
+            System.out.println("No file is currently open for saving.");
             return;
         }
         try (FileWriter writer = new FileWriter(filename)) {
             writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
             saveElement(writer, currentRoot, 0);
-            System.out.println("Файлът е запазен успешно.");
+            System.out.println("File saved successfully.");
         }
     }
 
@@ -507,7 +653,6 @@ public class XMLCommandHandler {
         String indentation = "  ".repeat(indent);
         writer.write(indentation + "<" + element.getTag());
 
-        // Запис на атрибути
         for (Map.Entry<String, String> attr : element.getAttributes().entrySet()) {
             writer.write(" " + attr.getKey() + "=\"" + attr.getValue() + "\"");
         }
@@ -515,7 +660,7 @@ public class XMLCommandHandler {
         if (element.getTextContent() != null && !element.getTextContent().isEmpty()) {
             writer.write(">" + element.getTextContent() + "</" + element.getTag() + ">\n");
         } else if (element.getChildren().isEmpty()) {
-            writer.write("/>\n");
+            writer.write("></"+element.getTag()+">\n");
         } else {
             writer.write(">\n");
             for (XMLElement child : element.getChildren()) {

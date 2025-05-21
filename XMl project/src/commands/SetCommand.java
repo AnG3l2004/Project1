@@ -1,6 +1,6 @@
 package commands;
 
-public class SetCommand implements XMLCommand {
+public class SetCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String id;
     private String key;
@@ -22,6 +22,9 @@ public class SetCommand implements XMLCommand {
     }
 
     public void setValue(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            throw new IllegalArgumentException("Value cannot be empty");
+        }
         this.value = value;
     }
 
@@ -36,14 +39,25 @@ public class SetCommand implements XMLCommand {
                 if (i > 3) valueBuilder.append(" ");
                 valueBuilder.append(tokens[i]);
             }
-            setValue(valueBuilder.toString());
+            String value = valueBuilder.toString().trim();
+            if (value.isEmpty()) {
+                throw new IllegalArgumentException("Value cannot be empty");
+            }
+            setValue(value);
         } else {
-            throw new IllegalArgumentException("Invalid usage for set command.");
+            throw new IllegalArgumentException("Invalid usage for set command. Expected format: set <id> <key> <value>");
         }
     }
 
     @Override
     public void execute() throws Exception {
         handler.set(id, key, value);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "set <id> <key> <value>   - Set attribute value (value can contain spaces)\n" +
+               "                          - Use 'text' as key to set text content\n" +
+               "                          - Use '*tagname' to create/update a child element";
     }
 } 

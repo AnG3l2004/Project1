@@ -1,71 +1,80 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 /**
  * Управлява уникални идентификатори (ID) за XML елементи.
  * Този клас предоставя функционалност за:
  * - Генериране на уникални идентификатори за XML елементи
  * - Проследяване на вече използвани идентификатори
- * - Обработка на дублиращи се идентификатори
+ * - Обработка на дублирани идентификатори
  * - Нулиране на проследяването на идентификатори
  *
- * Пример за използване:
+ * Пример за употреба:
  * <pre>
  * IDManager manager = new IDManager();
- * String id1 = manager.generateUniqueId("person");  // връща "person"
- * String id2 = manager.generateUniqueId("person");  // връща "person_1"
- * String id3 = manager.generateUniqueId(null);      // връща "auto_1"
+ * String id1 = manager.generateId("person");  // връща "person"
+ * String id2 = manager.generateId("person");  // връща "person_1"
  * </pre>
  */
 public class IDManager {
-    private Map<String, Integer> usedIds;
+    private Set<String> usedIds;
     private int autoIdCounter;
     /**
      * Създава нов IDManager с празен регистър на използвани идентификатори.
      */
     public IDManager() {
-        usedIds = new HashMap<>();
-        autoIdCounter = 1;
+        usedIds = new HashSet<>();
+        autoIdCounter = 0;
     }
     /**
      * Нулира проследяването на идентификатори.
-     * Изчиства всички записани идентификатори и нулира брояча за автоматично генерирани ID-та.
+     * Изчиства всички записани идентификатори и нулира брояча за автоматично генерирани ID.
      */
     public void reset() {
         usedIds.clear();
-        autoIdCounter = 1;
+        autoIdCounter = 0;
     }
     /**
-     * Генерира уникален идентификатор на базата на подаден такъв.
-     * Ако подаденият ID е null или празен, се генерира автоматичен идентификатор.
-     * Ако подаденият ID вече е използван, се добавя числов суфикс, за да стане уникален.
+     * Генерира уникален идентификатор базиран на предоставения.
+     * Ако предоставеният ID е null или празен, се генерира автоматичен идентификатор.
+     * Ако предоставеният ID вече е използван, се добавя числов суфикс за уникалност.
      *
-     * @param providedId идентификатор, използван като основа, или null за автоматично генериране
+     * @param providedId идентификатор за използване като база, или null за автоматично генериране
      * @return уникален идентификатор като низ
      *
      * Пример:
      * <pre>
-     * String id1 = manager.generateUniqueId("user");     // връща "user"
-     * String id2 = manager.generateUniqueId("user");     // връща "user_1"
-     * String id3 = manager.generateUniqueId(null);       // връща "auto_1"
-     * String id4 = manager.generateUniqueId("");         // връща "auto_2"
+     * String id1 = manager.generateId("person");     // връща "person"
+     * String id2 = manager.generateId("person");     // връща "person_1"
+     * String id3 = manager.generateId(null);         // връща "auto_1"
+     * String id4 = manager.generateId("");           // връща "auto_2"
      * </pre>
      */
-    public String generateUniqueId(String providedId) {
-        if (providedId != null && !providedId.isEmpty()) {
-            if (!usedIds.containsKey(providedId)) {
-                usedIds.put(providedId, 1);
-                return providedId;
-            } else {
-                int count = usedIds.get(providedId) + 1;
-                usedIds.put(providedId, count);
-                return providedId + "_" + count;
-            }
-        } else {
-            return "auto_" + autoIdCounter++;
+    public String generateId(String providedId) {
+        if (providedId == null || providedId.trim().isEmpty()) {
+            String autoId;
+            do {
+                autoId = "auto_" + (++autoIdCounter);
+            } while (isIdUsed(autoId));
+            usedIds.add(autoId);
+            return autoId;
         }
+
+        String baseId = providedId.trim();
+        if (!isIdUsed(baseId)) {
+            usedIds.add(baseId);
+            return baseId;
+        }
+
+        int counter = 1;
+        String newId;
+        do {
+            newId = baseId + "_" + counter++;
+        } while (isIdUsed(newId));
+        usedIds.add(newId);
+        return newId;
     }
     /**
-     * Проверява дали даден идентификатор вече е използван.
+     * Проверява дали идентификаторът вече е използван.
      *
      * @param id идентификаторът за проверка
      * @return true ако е използван, false в противен случай
@@ -76,21 +85,27 @@ public class IDManager {
      * </pre>
      */
     public boolean isIdUsed(String id) {
-        return usedIds.containsKey(id);
+        return usedIds.contains(id);
     }
     /**
-     * Връща броя на използванията на даден идентификатор.
+     * Връща броя пъти, в които идентификаторът е бил използван.
      *
      * @param id идентификаторът за проверка
-     * @return брой пъти, в които идентификаторът е използван, или 0 ако не е използван
+     * @return брой пъти, в които идентификаторът е бил използван, или 0 ако не е използван
      *
      * Пример:
      * <pre>
-     * int count = manager.getUseCount("person");  // връща броя на използванията на "person"
+     * int count = manager.getIdUsageCount("person");  // връща броя пъти, в които "person" е използван
      * </pre>
      */
-    public int getUseCount(String id) {
-        return usedIds.getOrDefault(id, 0);
+    public int getIdUsageCount(String id) {
+        int count = 0;
+        for (String usedId : usedIds) {
+            if (usedId.equals(id) || usedId.startsWith(id + "_")) {
+                count++;
+            }
+        }
+        return count;
     }
 }
 

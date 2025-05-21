@@ -8,14 +8,12 @@ public class SaveCommand implements XMLCommand {
     }
 
     @Override
-    public void setParameters(String[] tokens) throws Exception {
-        if (tokens.length != 1) {
-            throw new IllegalArgumentException("Invalid usage for save command.");
-        }
-    }
-
-    @Override
     public void execute() throws Exception {
         handler.save();
+    }
+    
+    @Override
+    public String getHelp() {
+        return "save                     - Save current XML structure to last used file";
     }
 } 

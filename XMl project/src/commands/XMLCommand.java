@@ -1,6 +1,14 @@
 package commands;
 
+/**
+ * Базов интерфейс за всички XML команди, които могат да бъдат изпълнени
+ */
 public interface XMLCommand {
-    void setParameters(String[] tokens) throws Exception;
     void execute() throws Exception;
+    
+    /**
+     * Връща помощен текст, описващ предназначението и употребата на командата
+     * @return String съдържащ помощна информация
+     */
+    String getHelp();
 } 

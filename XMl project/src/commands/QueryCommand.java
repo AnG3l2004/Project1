@@ -1,6 +1,6 @@
 package commands;
 
-public class QueryCommand implements XMLCommand {
+public class QueryCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String expression;
 
@@ -25,5 +25,10 @@ public class QueryCommand implements XMLCommand {
     @Override
     public void execute() throws Exception {
         handler.query(expression);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "query <expression>       - Query the XML structure";
     }
 } 

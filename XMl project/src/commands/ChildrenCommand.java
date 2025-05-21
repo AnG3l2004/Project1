@@ -1,6 +1,6 @@
 package commands;
 
-public class ChildrenCommand implements XMLCommand {
+public class ChildrenCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String id;
 
@@ -25,5 +25,10 @@ public class ChildrenCommand implements XMLCommand {
     @Override
     public void execute() throws Exception {
         handler.children(id);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "children <id>            - List default child elements (with tag 'new_element')";
     }
 } 

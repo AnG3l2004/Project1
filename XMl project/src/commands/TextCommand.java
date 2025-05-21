@@ -1,6 +1,6 @@
 package commands;
 
-public class TextCommand implements XMLCommand {
+public class TextCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String id;
 
@@ -25,5 +25,10 @@ public class TextCommand implements XMLCommand {
     @Override
     public void execute() throws Exception {
         handler.text(id);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "text <id>                - Get element's text content";
     }
 } 

@@ -20,8 +20,6 @@ import java.util.*;
 public class XMLElement {
     private String id;
     private String tag;
-    private String namespaceURI;
-    private String prefix;
     private Map<String, String> attributes;
     private List<XMLElement> children;
     private String textContent;
@@ -63,27 +61,6 @@ public class XMLElement {
      * @return името на тага
      */
     public String getTag() { return tag; }
-    /**
-     * Връща URI адреса на пространството от имена на елемента.
-     * @return URI на namespace-а
-     */
-    public String getNamespaceURI() { return namespaceURI; }
-    /**
-     * Задава URI на пространството от имена.
-     * @param namespaceURI URI на namespace-а
-     */
-
-    public void setNamespaceURI(String namespaceURI) { this.namespaceURI = namespaceURI; }
-    /**
-     * Връща префикса на пространството от имена.
-     * @return namespace префиксът
-     */
-    public String getPrefix() { return prefix; }
-    /**
-     * Задава префикс на пространството от имена.
-     * @param prefix префиксът за задаване
-     */
-    public void setPrefix(String prefix) { this.prefix = prefix; }
     /**
      * Връща текстовото съдържание на елемента.
      * @return текстовото съдържание

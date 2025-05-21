@@ -1,6 +1,6 @@
 package commands;
 
-public class ChildCommand implements XMLCommand {
+public class ChildCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String id;
     private int n;
@@ -16,6 +16,9 @@ public class ChildCommand implements XMLCommand {
     }
 
     public void setN(int n) {
+        if (n < 0) {
+            throw new IllegalArgumentException("Child index must be non-negative");
+        }
         this.n = n;
     }
 
@@ -23,7 +26,11 @@ public class ChildCommand implements XMLCommand {
     public void setParameters(String[] tokens) throws Exception {
         if (tokens.length == 3) {
             setId(tokens[1]);
-            setN(Integer.parseInt(tokens[2]));
+            try {
+                setN(Integer.parseInt(tokens[2]));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Child index must be a valid number");
+            }
         } else {
             throw new IllegalArgumentException("Invalid usage for child command.");
         }
@@ -32,5 +39,10 @@ public class ChildCommand implements XMLCommand {
     @Override
     public void execute() throws Exception {
         handler.child(id, n);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "child <id> <n>           - Access nth child";
     }
 } 

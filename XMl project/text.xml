@@ -4,5 +4,14 @@
     <title price="40" id="auto_3">Harry Potter</title>
     <author id="auto_4">J.K. Rowling</author>
     <price id="auto_5">29.99</price>
+    <new_element id="auto_6">
+      <title id="auto_7">Robert Downey jU</title>
+    </new_element>
+    <new_element price="30" id="auto_8">
+      <title id="auto_9">toooo</title>
+      <new_element id="auto_10"></new_element>
+      <new_element id="auto_11"></new_element>
+      <new_element id="auto_12"></new_element>
+    </new_element>
   </book>
 </bookstore>

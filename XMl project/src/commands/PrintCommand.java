@@ -8,14 +8,12 @@ public class PrintCommand implements XMLCommand {
     }
 
     @Override
-    public void setParameters(String[] tokens) throws Exception {
-        if (tokens.length != 1) {
-            throw new IllegalArgumentException("Invalid usage for print command.");
-        }
-    }
-
-    @Override
     public void execute() {
         handler.print();
+    }
+    
+    @Override
+    public String getHelp() {
+        return "print                    - Display the current XML structure";
     }
 } 

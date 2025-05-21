@@ -1,6 +1,6 @@
 package commands;
 
-public class SelectCommand implements XMLCommand {
+public class SelectCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String id;
     private String key;
@@ -32,5 +32,10 @@ public class SelectCommand implements XMLCommand {
     @Override
     public void execute() throws Exception {
         handler.select(id, key);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "select <id> <key>        - Get attribute value";
     }
 } 

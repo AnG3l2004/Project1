@@ -1,6 +1,6 @@
 package commands;
 
-public class SaveAsCommand implements XMLCommand {
+public class SaveAsCommand implements ParameterizedCommand {
     private XMLCommandHandler handler;
     private String filename;
 
@@ -25,5 +25,10 @@ public class SaveAsCommand implements XMLCommand {
     @Override
     public void execute() throws Exception {
         handler.saveAs(filename);
+    }
+    
+    @Override
+    public String getHelp() {
+        return "saveas <filename>        - Save current XML structure to a new file";
     }
 } 
